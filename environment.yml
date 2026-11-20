@@ -1,0 +1,11 @@
+name: neon-gee-rf
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - earthengine-api
+  - geemap
+  - pandas
+  - matplotlib
+  - ipykernel
+  - jupyterlab

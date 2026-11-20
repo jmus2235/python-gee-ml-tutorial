@@ -1,0 +1,25 @@
+# Output results: not tracked. Keep the folder.
+output/*
+!output/.gitkeep
+
+# Input data: not tracked by default. Keep the folder.
+# To track an essential input file, add a "!data/<file>" line below.
+data/*
+!data/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Credentials and local settings
+.env
+credentials*.json
+*service-account*.json
+.claude/settings.local.json
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
