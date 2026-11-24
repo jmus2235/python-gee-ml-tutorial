@@ -6,17 +6,27 @@ The tutorial is a Python port of an existing random forest classification writte
 
 ## Status
 
-Phase 1 complete. The Python notebook reproduces the JavaScript script results exactly.
+Phase 1 complete (parity port). Phase 2 complete (VST-based training data, 2022 data).
 
 ## Headline results
 
-**Phase 1: Parity port** (CLBJ 2017, 10 classes, 100-tree random forest)
+**Phase 1: Parity port** (CLBJ 2017, 10 classes, pre-made training data)
 
 - Overall accuracy: 83.1%
 - Kappa coefficient: 0.764
 - Test sample: 65 points (inside airshed)
+- Notebook: `scripts/clbj_rf_classification.ipynb`
 
-The Python port matches the JavaScript reference script on all metrics. The known method problems (listed in the notebook) remain for the corrections phase.
+**Phase 2: VST-based workflow** (CLBJ 2022, 6 classes, field-data-derived training points)
+
+- OOB accuracy: 83.8%
+- Test accuracy: 87.5%
+- Kappa coefficient: 0.846
+- Training: 37 points (16 trees from VST + 30 non-tree manual selection)
+- Test sample: 8 points
+- Notebook: `scripts/clbj_rf_classification_v2.ipynb`
+
+Phase 2 demonstrates the complete workflow from NEON field data download to classification. Phase 3 will provide a cleaned, production-ready tutorial.
 
 ## Repository layout
 

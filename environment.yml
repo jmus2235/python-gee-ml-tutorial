@@ -9,3 +9,8 @@ dependencies:
   - matplotlib
   - ipykernel
   - jupyterlab
+  - pyproj
+  - requests
+  - pip
+  - pip:
+    - neonutilities
