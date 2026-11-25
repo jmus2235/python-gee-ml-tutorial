@@ -122,3 +122,21 @@ GEE asset IDs:
 3. Run the cells in order (Run All). The VST download takes 1-2 minutes. Querying the NEON location API for plot point coordinates takes a few minutes due to API rate limits (one request per plot-point combination). Sampling, training, and classification run on the Earth Engine servers.
 
 **Outputs.** The notebook writes no files. It prints the VST record counts, species counts, threshold mask point counts, class lookup table, total training point counts, out-of-bag error and accuracy, training resubstitution accuracy (for comparison with Phase 1), test set overall accuracy and kappa, confusion matrix, and per-class producer's and user's accuracy. It shows four interactive `geemap` maps: input data layers (reflectance RGB, CHM, boundaries), threshold masks for non-tree classes, reference points by class, and the classified image with reference points overlay.
+
+### 6.3 `scripts/clbj_rf_classification_v3.ipynb`
+
+**Purpose.** Phase 3 of the CLBJ random forest classification. This notebook addresses spatial autocorrelation by implementing plot-level train/test splitting. It uses the same 2022 BRDF-corrected reflectance data and VST-based training approach as Phase 2, but splits unique plots 80/20 instead of splitting individual stems. This ensures that all stems from a given plot appear in either the training set OR the test set, never both. This provides an unbiased estimate of how well the classifier generalizes to new spatial locations, rather than measuring how well it recognizes spectrally similar neighbors from the same plot.
+
+**Inputs.** Same as Phase 2 (section 6.2).
+
+**Prerequisites.** Same as Phase 2 (section 6.2).
+
+**How to run.**
+
+1. In VS Code or JupyterLab, open `scripts/clbj_rf_classification_v3.ipynb` and select the `neon-gee-rf` kernel.
+2. In the setup cell, set `PROJECT_ID` to your own Google Cloud project ID.
+3. Run the cells in order (Run All). The workflow is the same as Phase 2, but the train/test split cell now shows which plots were assigned to training vs test.
+
+**Outputs.** Same as Phase 2, with additional output showing plot-level split details (which plots went to training, which to test). Test accuracy is expected to be 60-75% (lower than Phase 2's 87.5%), which correctly reflects the difficulty of generalizing to unseen plots rather than memorizing local spectral patterns.
+
+**Note on accuracy.** The lower test accuracy in Phase 3 compared to Phase 2 is expected and indicates better methodology, not worse performance. Phase 2's higher accuracy was inflated by spatial autocorrelation (stems from the same plot in both training and test sets). Phase 3's accuracy measures true spatial generalization.

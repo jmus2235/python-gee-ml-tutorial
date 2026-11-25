@@ -6,7 +6,7 @@ The tutorial is a Python port of an existing random forest classification writte
 
 ## Status
 
-Phase 1 complete (parity port). Phase 2 complete (VST-based training data, 2022 data).
+Phase 1 complete (parity port). Phase 2 complete (VST-based training data, 2022 data). Phase 3 in progress (plot-level splitting implemented, ready for testing).
 
 ## Headline results
 
@@ -20,13 +20,22 @@ Phase 1 complete (parity port). Phase 2 complete (VST-based training data, 2022 
 **Phase 2: VST-based workflow** (CLBJ 2022, 6 classes, field-data-derived training points)
 
 - OOB accuracy: 83.8%
-- Test accuracy: 87.5%
+- Test accuracy: 87.5% (stem-level split)
 - Kappa coefficient: 0.846
 - Training: 37 points (16 trees from VST + 30 non-tree manual selection)
 - Test sample: 8 points
 - Notebook: `scripts/clbj_rf_classification_v2.ipynb`
 
-Phase 2 demonstrates the complete workflow from NEON field data download to classification. Phase 3 will provide a cleaned, production-ready tutorial.
+Phase 2 demonstrates the complete workflow from NEON field data download to classification.
+
+**Phase 3: Plot-level splitting** (CLBJ 2022, 6 classes, spatial autocorrelation addressed)
+
+- Plot-level train/test split to avoid inflated accuracy from spatial autocorrelation
+- Expected test accuracy: 60-75% (measures true generalization to new locations)
+- Same training data as Phase 2, but plots split independently
+- Notebook: `scripts/clbj_rf_classification_v3.ipynb` (ready for testing)
+
+Phase 3 addresses the highest priority methodological issue: spatial autocorrelation. Lower test accuracy is expected and correct - it measures whether the classifier can generalize to plots it has never seen, not just recognize spectrally similar neighbors.
 
 ## Repository layout
 
