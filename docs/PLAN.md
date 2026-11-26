@@ -71,3 +71,46 @@ Phase 2 decisions (2026-11-23):
 7. **NEON_TOKEN:** Read from environment variable `NEON_TOKEN` (`os.environ.get('NEON_TOKEN')`), passed to `neonutilities`. Never printed or written to notebook output. NEON requires tokens for all downloads.
 8. **New notebook:** `scripts/clbj_rf_classification_v2.ipynb` (64 cells). Phase 1 notebook remains as verified parity reference.
 9. **OOB error:** Phase 2 reports out-of-bag error from `classifier.explain()` (fixes Phase 1 problem #6).
+
+## Phase 3 (notebook v3): decisions and results (2026-11-25)
+
+Note: the notebook numbering (v1, v2, v3, v4) does not match the numbered list in "Phases" above. Notebook v1 is the parity port. Notebook v2 is the VST-based workflow. Notebook v3 is the cross-validation. Notebook v4 is planned.
+
+**Data facts (checked 2026-11-25, NEON Data API, DP1.10098.001 at CLBJ).**
+
+- `vst_apparentindividual` for 2022-04 to 2022-05 has 156 records, all with `eventID` = `vst_CLBJ_2021`, dated from 2022-04-06. They cover two plots: `CLBJ_036` (79) and `CLBJ_043` (77). Only `CLBJ_043` has georeferenced stems that pass the filters, so only one plot is usable.
+- `vst_mappingandtagging` has coordinates for 830 stems in 48 plots, but the stems have no filter attributes in the April and May download.
+- The download for 2022-04 to 2022-12 has 412 apparent individual records (345 individuals): 156 from `vst_CLBJ_2021` and 256 from `vst_CLBJ_2022` (dates to 2022-11-22). 65 stems in 5 plots pass the filters (`CLBJ_002`, `CLBJ_003`, `CLBJ_004`, `CLBJ_006`, `CLBJ_043`).
+- Stems by species (plots): QUST 41 (5), JUVI 9 (2), ULCR 7 (2), QUMA3 6 (3), PRME 1 (1), ULAL 1 (1).
+
+**Decisions.**
+
+1. **VST bouts: 2022-04 to 2022-12.** This replaces decision 2 of Phase 2 (spring bouts only). Reason: the spring records give one usable plot, and plot-level validation needs several. Cost: some attributes (`plantStatus`, `canopyPosition`, `height`) are up to six months after the AOP flight.
+2. **Filters (supersedes Phase 2 decision 4):** `plantStatus` contains "Live", `canopyPosition` in ["Full sun", "Partially shaded", "Mostly shaded"], `height >= 1`, valid stem distance and azimuth. The strict filter leaves too few stems. The relaxed filter keeps some understory stems that the sensor may not see. The most recent apparent individual record is used for each individual.
+3. **Species rule:** keep species with at least 5 stems in at least 2 plots. This drops PRME and ULAL and keeps QUMA3.
+4. **Non-tree classes (supersedes Phase 2 decision 5):** 10 manually selected points for each of GRSS, WATR, and SHADE. The threshold masks are in the notebook for display only. The classifier does not use them.
+5. **Validation: leave-one-plot-out cross-validation** (5 folds) instead of one 80/20 split of plots. With 5 plots, one test plot makes the accuracy depend on the plot choice. Non-tree points have no plot. They are assigned to the folds at random, with equal numbers of each class in each fold. Their spatial autocorrelation remains.
+6. **One class lookup table.** Tree species 0 to 3 (alphabetical), GRSS 7, WATR 8, SHADE 9.
+
+**Status of the six problems of the JavaScript script.**
+
+| # | Problem | Status in notebook v3 |
+|---|---|---|
+| 1 | No-data (-9999) not masked in the classification input | Not done. One of 93 reference points fell on a masked pixel and was dropped at sampling. |
+| 2 | Points outside the airshed dropped without a message | Not examined in v3. |
+| 3 | Classes too small to split | Done by the species rule (decision 3). |
+| 4 | Stems of one plot in training and test sets | Done for tree classes (decision 5). Not done for non-tree classes. |
+| 5 | Understory stems not visible from the air | Not solved. The filters were relaxed (decision 2). |
+| 6 | Resubstitution accuracy reported as training accuracy | Done. The notebook reports the OOB error and the cross-validated accuracy. |
+
+**Results.** 92 held-out points (63 tree stems, 29 non-tree). Overall accuracy 66.3%, kappa 0.517. Tree accuracy 52.4% (33 of 63). Predicting "QUST" for every tree gives 65.1%. Only QUST is predicted correctly. JUVI, QUMA3, and ULCR have 0% producer's and user's accuracy. Tree accuracy for each held-out plot: 14.3% (`CLBJ_004`, 7 stems) to 85.7% (`CLBJ_003`, 14 stems). Non-tree accuracy 96.6%. OOB accuracy 72.8%.
+
+**Earlier claims that are withdrawn.** The Phase 2 notebook reported a test accuracy of 87.5% with a random split of stems. All 16 tree points were in one plot (`CLBJ_043`), so this value does not measure generalization to new locations. The first version of notebook v3 (commit `f2e83b6`) used a plot-level 80/20 split. With one tree plot, the split put all trees in the test set and none in the training set. The "60-75% expected accuracy" in the first documents of notebook v3 was a prediction without data and was wrong.
+
+**Phase 4 (planned; notebook v4).** Test one change at a time with the same cross-validation. Compare the tree accuracy with the baseline of 65.1%. Candidate tests, in this order:
+
+1. Mean reflectance in a small window around each stem (for example a 2 m buffer) instead of one pixel.
+2. Class balancing: oversample the rare species in the training folds only.
+3. Fewer bands.
+
+Other open items: no-data masking in the classification input (problem 1), airshed handling (problem 2), hyperparameter tuning, feature importance, class probability maps, and removal of the unused threshold steps from the notebook.

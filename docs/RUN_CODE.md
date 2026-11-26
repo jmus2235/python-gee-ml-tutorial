@@ -125,18 +125,28 @@ GEE asset IDs:
 
 ### 6.3 `scripts/clbj_rf_classification_v3.ipynb`
 
-**Purpose.** Phase 3 of the CLBJ random forest classification. This notebook addresses spatial autocorrelation by implementing plot-level train/test splitting. It uses the same 2022 BRDF-corrected reflectance data and VST-based training approach as Phase 2, but splits unique plots 80/20 instead of splitting individual stems. This ensures that all stems from a given plot appear in either the training set OR the test set, never both. This provides an unbiased estimate of how well the classifier generalizes to new spatial locations, rather than measuring how well it recognizes spectrally similar neighbors from the same plot.
+**Purpose.** Phase 3 of the CLBJ random forest classification. The notebook uses the same 2022 BRDF-corrected reflectance data as Phase 2. It builds the tree training points from VST data of 2022-04 to 2022-12 and evaluates the classifier with leave-one-plot-out cross-validation. Each VST plot is one fold. The classifier trains on all other plots and predicts the held-out plot. This measures how well the classifier works at plots that it has not seen. A random split of stems puts stems of the same plot in the training and test sets, and it gives an accuracy that is too high.
 
-**Inputs.** Same as Phase 2 (section 6.2).
+**Inputs.**
 
-**Prerequisites.** Same as Phase 2 (section 6.2).
+NEON API data products:
+- DP1.10098.001 (Woody plant vegetation structure) - downloaded from the NEON API for site CLBJ, bouts 2022-04 to 2022-11 (`startdate='2022-04'`, `enddate='2022-12'`). The April and May records of the apparent individual table cover only two plots. The November bout adds more plots.
+
+GEE asset IDs: the same as Phase 2 (section 6.2).
+
+**Prerequisites.** Same as Phase 2 (section 6.2), including the `NEON_TOKEN` environment variable.
 
 **How to run.**
 
-1. In VS Code or JupyterLab, open `scripts/clbj_rf_classification_v3.ipynb` and select the `neon-gee-rf` kernel.
+1. In JupyterLab, open `scripts/clbj_rf_classification_v3.ipynb` and select the `neon-gee-rf` kernel.
 2. In the setup cell, set `PROJECT_ID` to your own Google Cloud project ID.
-3. Run the cells in order (Run All). The workflow is the same as Phase 2, but the train/test split cell now shows which plots were assigned to training vs test.
+3. Use Kernel > Restart Kernel and Run All Cells. The location queries take a few minutes. The cross-validation trains one random forest for each plot (5 classifiers), so it takes longer than the single classifier in Phase 2. I did not measure the run time or the Earth Engine compute use.
 
-**Outputs.** Same as Phase 2, with additional output showing plot-level split details (which plots went to training, which to test). Test accuracy is expected to be 60-75% (lower than Phase 2's 87.5%), which correctly reflects the difficulty of generalizing to unseen plots rather than memorizing local spectral patterns.
+**Outputs.** The notebook writes no files. It prints:
+- the number of stems by species and plot, and the species that the notebook drops (fewer than 5 stems or fewer than 2 plots);
+- the class lookup table and the number of points in each class;
+- the cross-validation design (held-out plot and stems in each fold);
+- the out-of-bag error and accuracy, and the resubstitution accuracy of the classifier trained on all points;
+- the accuracy of each fold, the pooled confusion matrix, the overall accuracy, kappa, and the producer's and user's accuracy of each class.
 
-**Note on accuracy.** The lower test accuracy in Phase 3 compared to Phase 2 is expected and indicates better methodology, not worse performance. Phase 2's higher accuracy was inflated by spatial autocorrelation (stems from the same plot in both training and test sets). Phase 3's accuracy measures true spatial generalization.
+It shows four interactive `geemap` maps: input data layers, threshold masks for non-tree classes (for display only; the classifier uses the manually selected points), reference points by class, and the classified image.
